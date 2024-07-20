@@ -118,6 +118,16 @@ def main(cfg) -> None:
     logging.info("\n\n************** Experiment configuration ***********")
     logging.info(f"\n{OmegaConf.to_yaml(cfg)}")
 
+    import os
+
+    global_rank = int(os.getenv('OMPI_COMM_WORLD_RANK', 0))
+    local_rank = int(os.getenv('OMPI_COMM_WORLD_LOCAL_RANK', 0))
+    world_size = int(os.getenv('OMPI_COMM_WORLD_SIZE', 1))
+
+    os.environ['RANK'] = str(global_rank)
+    os.environ['LOCAL_RANK'] = str(local_rank)
+    os.environ['WORLD_SIZE'] = str(world_size)
+
     trainer = resolve_and_create_trainer(cfg, "sft")
     exp_manager(trainer, cfg.exp_manager)
     logger = CustomLoggerWrapper(trainer.loggers)

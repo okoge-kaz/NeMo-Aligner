@@ -29,7 +29,7 @@ cd ..
 git clone git@github.com:NVIDIA/apex.git
 cd apex
 
-pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./
+pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" --config-settings "--build-option=--distributed_adam" ./
 
 # install transfoermer engine
 pip install git+https://github.com/NVIDIA/TransformerEngine.git@v1.6
@@ -44,3 +44,9 @@ cd flash-attention
 git checkout v2.4.2
 
 pip install -e .
+
+# huggingface hub
+# https://github.com/NVIDIA/NeMo/issues/9793
+# https://github.com/NVIDIA/NeMo/issues/9318
+pip install transformers==4.40.2
+pip install huggingface-hub==0.22.0

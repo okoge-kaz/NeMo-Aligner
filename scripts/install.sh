@@ -50,3 +50,6 @@ pip install -e .
 # https://github.com/NVIDIA/NeMo/issues/9318
 pip install transformers==4.40.2
 pip install huggingface-hub==0.22.0
+
+# checkpoint convert check
+pip install accelerate

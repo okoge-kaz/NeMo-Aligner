@@ -27,5 +27,6 @@ mkdir -p $COVERTED_CHECKPOINTS_DIR
 # convert huggingface model to nemo
 python $NEMO_DIR/scripts/checkpoint_converters/convert_llama_hf_to_nemo.py \
   --input_name_or_path /gs/bs/tga-NII-LLM/hf-checkpoints/Meta-Llama-3-8B \
-  --output_path $COVERTED_CHECKPOINTS_DIR/Llama-3-8B.nemo
+  --output_path $COVERTED_CHECKPOINTS_DIR/Llama-3-8B.nemo \
+  --precision bf16
 

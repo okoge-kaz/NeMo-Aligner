@@ -44,11 +44,12 @@ exp_manager:
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
+  log_tflops_per_sec_per_gpu: True
   checkpoint_callback_params:
     monitor: val_loss
     save_top_k: 5
     mode: min
-    save_nemo_on_train_end: False 
+    save_nemo_on_train_end: False
     filename: 'megatron_gpt_sft--{${.monitor}:.3f}-{step}-{consumed_samples}-{epoch}'
     model_parallel_size: ${model.tensor_model_parallel_size}
     save_best_model: False   # need to keep this false otherwise it will create multiple last.ckpt files because restore reset the previous best model
@@ -70,7 +71,7 @@ model:
   sequence_parallel: False
 
   ## Activation Checkpoint
-  activations_checkpoint_granularity: null # 'selective' or 'full'
+  activations_checkpoint_granularity: selective # 'selective' or 'full'
   activations_checkpoint_method: null # 'uniform', 'block', not used with 'selective'
   # 'uniform' divides the total number of transformer layers and checkpoints the input activation
   # of each chunk at the specified granularity
@@ -89,6 +90,8 @@ model:
 
   global_batch_size: ${.data.train_ds.global_batch_size}
   micro_batch_size: ${.data.train_ds.micro_batch_size}
+
+  use_te_rng_tracker: False
 
   steerlm2:
     forward_micro_batch_size:  1  # the micro batch size for the forward pass, used to compute the weights
@@ -131,15 +134,15 @@ model:
       weight_tying: False
       position_embedding_strategy: null # used only when weight_tying is True
 
-    
+
   data:
-    chat: False # whether use chatbot data or not
+    chat: True # whether use chatbot data or not
     chat_prompt_tokens:  # special tokens for the chat prompts, a dictionary of {token_type: token}. note that some tokenizer may combine the characters at the junction between {end_of_turn}{turn_start}. e.g. '<im end><im start>', the '><' sometimes is merged to be a single token. This is not supported, try to avoid
-      system_turn_start: "\x00"
-      turn_start: "\x11"
-      label_start: "\x12"
-      end_of_turn: "\x0A"  # \0x0A is '\n'
-      end_of_name: "\x0A"  # \0x0A is '\n'
+      system_turn_start: "<|start_header_id|>"
+      turn_start: "<|start_header_id|>"
+      label_start: ""
+      end_of_turn: "<|eot_id|>"
+      end_of_name: "<|end_header_id|>"
     sample: False # create the index mapping files for the sample data, so max_steps * global_batch_size can be larger than the dataset size
     num_workers: 0
     train_ds:
@@ -163,13 +166,13 @@ model:
       #   - 0.5
       #   - 0.25
       #   - 0.25
-      label_key: 'output'
+      label_key: ''
       add_eos: True
       add_sep: False
       add_bos: False
-      truncation_field: "input" # # Can be multiple keys separated with ',' Options: keys in prompt_template
+      truncation_field: "" # # Can be multiple keys separated with ',' Options: keys in prompt_template
       index_mapping_dir: null # Path to a directory to write index mapping files.
-      prompt_template: "{input} {output}" # fstring to use for assistant prompt. Example: "Q: {input}\nA: {output}"
+      prompt_template: "" # fstring to use for assistant prompt. Example: "Q: {input}\nA: {output}"
       hf_dataset: False # Whether to load the json file with the HuggingFace dataset. otherwise, will load the jsonl file with the JSONLMemMapDataset.
       truncation_method: 'right' # Truncation from which position, Options: ['left', 'right']
 
@@ -199,9 +202,9 @@ model:
     weight_decay: 0.01
     betas:
     - 0.9
-    - 0.98
+    - 0.95
     sched:
       name: CosineAnnealing
       warmup_steps: 10
-      constant_steps: 1000
+      constant_steps: 0
       min_lr: 9e-7

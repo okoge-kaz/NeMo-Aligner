@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import os
 import torch.multiprocessing as mp
 from omegaconf.omegaconf import OmegaConf, open_dict
 
@@ -51,6 +51,19 @@ mp.set_start_method("spawn", force=True)
 
 @hydra_runner(config_path="conf", config_name="gpt_sft")
 def main(cfg) -> None:
+    if os.environ.get("OMPI_COMM_WORLD_SIZE"):
+        global_rank = int(os.getenv('OMPI_COMM_WORLD_RANK', 0))
+        local_rank = int(os.getenv('OMPI_COMM_WORLD_LOCAL_RANK', 0))
+        world_size = int(os.getenv('OMPI_COMM_WORLD_SIZE', 1))
+        local_world_size = int(os.getenv('OMPI_COMM_WORLD_LOCAL_SIZE', 8))
+        node_rank = global_rank // local_world_size
+
+        os.environ['RANK'] = str(global_rank)
+        os.environ['LOCAL_RANK'] = str(local_rank)
+        os.environ['WORLD_SIZE'] = str(world_size)
+        os.environ['LOCAL_WORLD_SIZE'] = str(local_world_size)
+        os.environ['NODE_RANK'] = str(node_rank)
+
     cfg.model = load_and_override_model_config(cfg.model.restore_from_path, cfg.model)
 
     logging.info("\n\n************** Experiment configuration ***********")

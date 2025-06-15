@@ -2,7 +2,7 @@
 #PBS -q rt_HF
 #PBS -N sft
 #PBS -l select=2:ncpus=192:ngpus=8
-#PBS -l walltime=1:00:00
+#PBS -l walltime=10:00:00
 #PBS -j oe
 #PBS -m n
 #PBS -v USE_SSH=1
@@ -55,15 +55,14 @@ NEMO_CHECKPOINT_DIR="/groups/gag51395/fujii/checkpoints/hf-to-nemo/llama3.1-8b-s
 
 export HYDRA_FULL_ERROR=1
 
-export WANDB=False
 export WANDB_PROJECT="Llama-3.1-8B-NeMo-Aligner"
 export WANDB_ENTITY="prj-jalm"
 export WANDB_NAME="Llama-3.1-Swallow-8B-v0.5-lmsys-chat-1m-gemma-3-ja"
-export WANDB_RESUME="never"
+export WANDB_MODE="offline"
 
-EXP_DIR="/groups/gag51395/fujii/checkpoints/nemo-aligner/llama-3.1-8b/sft/"
+CHECKPOINT_SAVE_DIR="/groups/gag51395/fujii/checkpoints/nemo-aligner/llama-3.1-8b/sft/Llama-3.1-Swallow-8B-v0.5-lmsys-chat-1m-gemma-3-ja"
+mkdir -p ${CHECKPOINT_SAVE_DIR}
 EXP_NAME="Llama-3.1-Swallow-8B-v0.5-lmsys-chat-1m-gemma-3-ja"
-mkdir -p ${EXP_DIR}
 
 # data paths
 TRAIN_DATA_PATH="/groups/gag51395/datasets/instruct/lmsys-chat-1m/sft/Llama-3.1-Swallow-v0.5-lmsys-conversation.jsonl"
@@ -118,11 +117,14 @@ mpirun -np $NUM_GPUS \
   --bind /tmp:/tmp \
   $SINGULARITY_IMAGE \
   python examples/nlp/gpt/train_gpt_sft.py \
-        exp_manager.exp_dir=${EXP_DIR} \
-        exp_manager.name=${EXP_NAME} \
-        exp_manager.create_wandb_logger=${WANDB} \
+        exp_manager.exp_dir=${CHECKPOINT_SAVE_DIR} \
+        exp_manager.create_wandb_logger=True \
+        exp_manager.explicit_log_dir=${CHECKPOINT_SAVE_DIR} \
         exp_manager.wandb_logger_kwargs.project=${WANDB_PROJECT} \
         exp_manager.wandb_logger_kwargs.name=${EXP_NAME} \
+        exp_manager.resume_if_exists=True \
+        exp_manager.resume_ignore_no_checkpoint=True \
+        exp_manager.create_checkpoint_callback=True \
         exp_manager.checkpoint_callback_params.save_nemo_on_train_end=True \
         exp_manager.checkpoint_callback_params.save_top_k=1 \
         exp_manager.checkpoint_callback_params.save_best_model=True \
@@ -142,6 +144,7 @@ mpirun -np $NUM_GPUS \
         model.hidden_dropout=0.0 \
         model.attention_dropout=0.0 \
         model.ffn_dropout=0.0 \
+        model.encoder_seq_length=${SEQUENCE_LENGTH} \
         model.restore_from_path=${NEMO_CHECKPOINT_DIR} \
         model.optim.lr=${LR} \
         model.optim.weight_decay=0.1 \

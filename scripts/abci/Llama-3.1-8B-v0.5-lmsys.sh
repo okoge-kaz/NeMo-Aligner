@@ -134,7 +134,7 @@ mpirun -np $NUM_GPUS \
         trainer.num_nodes=${NUM_NODES} \
         trainer.sft.max_epochs=2 \
         trainer.sft.max_steps=-1 \
-        trainer.sft.val_check_interval=500 \
+        trainer.sft.val_check_interval=2000 \
         trainer.sft.gradient_clip_val=1.0 \
         model.megatron_amp_O2=True \
         model.tensor_model_parallel_size=${TENSOR_PARALLEL_SIZE} \

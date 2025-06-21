@@ -167,9 +167,9 @@ model:
       #   - 0.25
       #   - 0.25
       label_key: ''
-      add_eos: True
+      add_eos: False
       add_sep: False
-      add_bos: False
+      add_bos: True
       truncation_field: "" # # Can be multiple keys separated with ',' Options: keys in prompt_template
       index_mapping_dir: null # Path to a directory to write index mapping files.
       prompt_template: "" # fstring to use for assistant prompt. Example: "Q: {input}\nA: {output}"

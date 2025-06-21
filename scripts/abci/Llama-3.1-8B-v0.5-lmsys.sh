@@ -1,7 +1,7 @@
 #!/bin/sh
 #PBS -q rt_HF
 #PBS -N sft
-#PBS -l select=2:ncpus=192:ngpus=8
+#PBS -l select=4:ncpus=192:ngpus=8
 #PBS -l walltime=10:00:00
 #PBS -j oe
 #PBS -m n
@@ -156,7 +156,7 @@ mpirun -np $NUM_GPUS \
         model.data.train_ds.micro_batch_size=${MICRO_BATCH_SIZE} \
         model.data.train_ds.max_seq_length=${SEQUENCE_LENGTH} \
         model.data.validation_ds.file_path=${VALIDATION_DATA_PATH} \
-        model.data.validation_ds.global_batch_size=128 \
+        model.data.validation_ds.global_batch_size=${GLOBAL_BATCH_SIZE} \
         model.data.validation_ds.micro_batch_size=${MICRO_BATCH_SIZE} \
         model.data.validation_ds.drop_last=True \
         model.data.num_workers=0 \
